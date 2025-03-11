@@ -19,7 +19,7 @@ config:
   jwt:
     issuer: meerkat@green.com
     type: jwt
-    access-token-expiry: 10000
+    access-token-expiry: 10000000
     refresh-token-expiry: 1296000000
     refresh-token-cookie-name: refresh-token
     refresh-token-cookie-expiry: 1296000
@@ -27,3 +27,11 @@ config:
     header-key: Authorization
     scheme: Bearer
     reiss-uri: /api/reissue-token
+
+
+# Slf4j 설정
+logging:
+  file:
+    name: classpath:logs/app.log
+  level:
+    root: info

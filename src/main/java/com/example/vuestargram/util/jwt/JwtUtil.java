@@ -2,10 +2,12 @@ package com.example.vuestargram.util.jwt;
 
 import com.example.vuestargram.model.User;
 import com.example.vuestargram.util.jwt.config.JwtConfig;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -15,10 +17,12 @@ import java.util.Date;
 public class JwtUtil {
     private final JwtConfig jwtconfig;
     private final SecretKey secretKey;
+    private final JwtConfig jwtConfig;
 
-    public JwtUtil(JwtConfig jwtconfig) {
+    public JwtUtil(JwtConfig jwtconfig, JwtConfig jwtConfig) {
         this.jwtconfig = jwtconfig;
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtconfig.getSecret()));
+        this.jwtConfig = jwtConfig;
     }
     // 엑세스 토큰 생성 메소드
     public String generateAccessToken(User user) {
@@ -47,4 +51,33 @@ public class JwtUtil {
                 .signWith(secretKey, SignatureAlgorithm.HS256) //secret 키 생성
                 .compact(); //토큰 생성
     }
+
+    // 페이로드(claims ) 추출 및 토큰 검증 메소드
+    // 토큰 안에 있는 요소 하나하나들을 claims라고 부름(자바에서)
+    public Claims getClaims(String token) {
+        return Jwts.parser() // jwt 파서 객체 생성
+                .verifyWith(this.secretKey) // 서명 검증을 위한 비밀키 설정
+                .build() // 파서 빌드
+                // 토근 유효시간 검증, 시그니처 검증, 등등 확인 하는 절차
+                .parseSignedClaims(token) // jwt 파싱 및 검증
+                .getPayload(); //페이로드(claims) 반환
+
+    }
+
+    // 쿠키에서 엑세스 토큰 획득
+    public String getAccessTokenInCookie(HttpServletRequest request) {
+        // request header에서 bearerToken 획득
+        String bearerToken = request.getHeader(jwtConfig.getHeaderKey());
+
+        // 토큰 존재 여부 체크 & "Bearer"로 시작하는지 체크
+        // jwtConfig에 미리 만들어 둔 getScheme 사용
+        if(bearerToken == null || !bearerToken.startsWith(jwtConfig.getScheme())) {
+            return null; // null 하는 이유?
+        }
+
+        return bearerToken.substring(jwtConfig.getScheme().length() +1);
+        // +1 : 빈칸
+        // yml파일은 뒤에 빈 공간을 인식하지 못함
+    }
+
 }
