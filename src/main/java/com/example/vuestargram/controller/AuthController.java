@@ -20,8 +20,8 @@ public class AuthController {
 
             @Valid @RequestBody LoginRequestDTO loginRequestDTO // json데이터가 body에 담겨서 옴, 실제로 우리가 보는 데이터가 담김
     ) {
-        return loginRequestDTO.getAccount() + ":" +loginRequestDTO.getPassword();
-        // return authService.login();
+//        return loginRequestDTO.getAccount() + ":" +loginRequestDTO.getPassword();
+         return authService.login(loginRequestDTO);
     }
 
     @GetMapping("/test")
